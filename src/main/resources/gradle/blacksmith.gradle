@@ -1,0 +1,28 @@
+allprojects {
+    // this currently _assumes_ a project using 'org.springframework.boot'
+    // task bootBuildImage is registered when `java` (or `war`) plugin is applied,
+    // NOT when the boot-plugin is applied
+    pluginManager.withPlugin('java', {
+
+        project.tasks.named('bootBuildImage').configure {
+            imageName = "${project.findProperty('eu.xenit.contentcloud.docker.registry.name')}/content-cloud-apps/${project.name}:${project.version}"
+            publish = true
+            docker {
+                publishRegistry {
+                    username = project.findProperty('eu.xenit.contentcloud.docker.registry.username')
+                    password = project.findProperty('eu.xenit.contentcloud.docker.registry.password')
+                    token = project.findProperty('eu.xenit.contentcloud.docker.registry.token')
+                    url = project.findProperty('eu.xenit.contentcloud.docker.registry.url')
+                }
+            }
+
+            doLast {
+                def dockerImgFile = file('build/docker.image')
+                println "writing ${imageName} > ${dockerImgFile.absolutePath}"
+                dockerImgFile.newWriter().withWriter { writer ->
+                    writer.write imageName
+                }
+            }
+        }
+    })
+}
