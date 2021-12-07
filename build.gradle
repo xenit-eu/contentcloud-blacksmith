@@ -50,6 +50,10 @@ test {
 	useJUnitPlatform()
 }
 
+bootRun {
+	args = ["--spring.profiles.active=bootrun"]
+}
+
 bootBuildImage {
 	imageName = "hub.xenit.eu/content-cloud/blacksmith:${project.version}"
 	docker {
