@@ -43,3 +43,14 @@ dependencies {
 test {
 	useJUnitPlatform()
 }
+
+bootBuildImage {
+	imageName = "hub.xenit.eu/content-cloud/blacksmith:${project.version}"
+	docker {
+		publishRegistry {
+			url = project.findProperty('DOCKER_PUBLISH_REGISTRY_URL')
+			username = project.findProperty('DOCKER_PUBLISH_REGISTRY_USERNAME')
+			password = project.findProperty('DOCKER_PUBLISH_REGISTRY_PASSWORD')
+		}
+	}
+}
