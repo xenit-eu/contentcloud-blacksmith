@@ -1,13 +1,17 @@
 package eu.xenit.contentcloud.blacksmith.model;
 
 import eu.xenit.contentcloud.blacksmith.model.publication.PublicationDetails;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class ArtifactBuildRequest {
 
     private BuildRequestId id;

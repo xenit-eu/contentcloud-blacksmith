@@ -32,61 +32,61 @@ public class GradleBuildExecutor {
         return this.build(workingDirectory, "bootBuildImage", registry);
     }
 
-
     private CompletableFuture<ArtifactDescriptor> build(Path workingDirectory, String task, DockerImageRegistry registry) {
-        ProjectConnection connection = GradleConnector.newConnector()
-                .forProjectDirectory(workingDirectory.toFile())
-                .connect();
+        try {
+            ProjectConnection connection = GradleConnector.newConnector()
+                    .forProjectDirectory(workingDirectory.toFile())
+                    .connect();
 
+            CompletableFuture<ArtifactDescriptor> future = new CompletableFuture<>();
+            connection.newBuild()
+                    .setStandardOutput(new Slf4jOutputStream(log, Slf4jOutputStream.LogLevel.INFO))
+                    .forTasks(task)
+                    .withArguments(new GradleLaunchArguments()
+                            .withInitScript(gradleInitScript())
+                            .addProperty("eu.xenit.contentcloud.docker.registry.name", registry.getName())
+                            .addProperty("eu.xenit.contentcloud.docker.registry.url", registry.getUrl().toString())
+                            .addPropertyIf(registry.getUsername() != null,
+                                    "eu.xenit.contentcloud.docker.registry.username", registry.getUsername())
+                            .addPropertyIf(registry.getPassword() != null,
+                                    "eu.xenit.contentcloud.docker.registry.password", registry.getPassword())
+                            .addPropertyIf(registry.getToken() != null,
+                                    "eu.xenit.contentcloud.docker.registry.token", registry.getToken())
+                    )
+                    .run(new ResultHandler<>() {
+                        @Override
+                        public void onComplete(Void result) {
+                            try {
+                                String dockerImage = Files.readString(workingDirectory.resolve("build").resolve("docker.image"));
+                                var artifact = new ArtifactDescriptor("docker-image", dockerImage);
+                                future.complete(artifact);
 
-        // inject smith.gradle with some extra publish tasks ?
-        CompletableFuture<ArtifactDescriptor> future = new CompletableFuture<>();
-        connection.newBuild()
-                .setStandardOutput(new Slf4jOutputStream(log, Slf4jOutputStream.LogLevel.INFO))
-                .forTasks(task)
-                .withArguments(new GradleLaunchArguments()
-                        .withInitScript(gradleInitScript())
-                        .addProperty("eu.xenit.contentcloud.docker.registry.name", registry.getName())
-                        .addProperty("eu.xenit.contentcloud.docker.registry.url", registry.getUrl().toString())
-                        .addPropertyIf(registry.getUsername() != null,
-                                "eu.xenit.contentcloud.docker.registry.username", registry.getUsername())
-                        .addPropertyIf(registry.getPassword() != null,
-                                "eu.xenit.contentcloud.docker.registry.password", registry.getPassword())
-                        .addPropertyIf(registry.getToken() != null,
-                                "eu.xenit.contentcloud.docker.registry.token", registry.getToken())
-                )
-                .run(new ResultHandler<>() {
-                    @Override
-                    public void onComplete(Void result) {
-                        try {
-                            String dockerImage = Files.readString(workingDirectory.resolve("build").resolve("docker.image"));
-                            var artifact = new ArtifactDescriptor("docker-image", dockerImage);
-                            future.complete(artifact);
-
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } finally {
-                            connection.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } finally {
+                                connection.close();
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onFailure(GradleConnectionException failure) {
-                        try {
-                            log.info("build failed", failure);
-                            BuildFailedException buildFailed = new BuildFailedException("Build or publish docker image failed", failure);
-                            buildFailed.fillInStackTrace();
+                        @Override
+                        public void onFailure(GradleConnectionException failure) {
+                            try {
+                                log.info("build failed", failure);
+                                BuildFailedException buildFailed = new BuildFailedException("Build or publish docker image failed", failure);
+                                buildFailed.fillInStackTrace();
 
-                            future.completeExceptionally(buildFailed);
-                        } finally {
-                            connection.close();
+                                future.completeExceptionally(buildFailed);
+                            } finally {
+                                connection.close();
+                            }
                         }
-                    }
-                });
+                    });
 
 
-        return future;
-
+            return future;
+        } catch (GradleConnectionException gce) {
+            return CompletableFuture.failedFuture(gce);
+        }
     }
 
     static String gradleInitScript() {
