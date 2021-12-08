@@ -7,5 +7,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "blacksmith.scribe")
 public class ScribeProperties {
 
-    public String url;
+    public String url = "https://api.content-cloud.eu/";
 }
