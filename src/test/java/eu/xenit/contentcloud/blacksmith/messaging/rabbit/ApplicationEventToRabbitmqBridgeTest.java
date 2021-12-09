@@ -31,8 +31,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 
-@SpringBootTest
-class ApplicationEventToRabbitBridgeTest {
+@SpringBootTest(properties = "blacksmith.rabbitmq.enabled=true")
+class ApplicationEventToRabbitmqBridgeTest {
 
     @Configuration
     @Import({RabbitmqConfiguration.class, RabbitAutoConfiguration.class})
@@ -72,7 +72,7 @@ class ApplicationEventToRabbitBridgeTest {
     }
 
     @Autowired
-    private ApplicationEventToRabbitBridge bridge;
+    private ApplicationEventToRabbitmqBridge bridge;
 
     @Autowired
     private Config config;
