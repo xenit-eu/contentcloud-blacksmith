@@ -23,8 +23,10 @@ public class DefaultScribeGateway implements ScribeGateway {
     private final RestTemplate restTemplate;
 
     public void getProjectSources(ArtifactBuildRequest buildRequest, Path workingDirectory) throws IOException {
-        var uri = UriComponentsBuilder.fromUriString("http://localhost:8081/starter.zip")
-                .queryParam("changeset", buildRequest.getChangeset()).build().toUri();
+        var uri = UriComponentsBuilder.fromUriString(properties.getUrl())
+                .path("starter.zip")
+                .queryParam("changeset", buildRequest.getChangeset())
+                .build().toUri();
 
         Path zip = downloadProjectZip(workingDirectory, uri);
         extractZip(zip, workingDirectory);
