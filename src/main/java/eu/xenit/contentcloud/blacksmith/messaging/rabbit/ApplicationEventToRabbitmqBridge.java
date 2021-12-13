@@ -10,7 +10,7 @@ import org.springframework.context.event.EventListener;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ApplicationEventToRabbitBridge {
+public class ApplicationEventToRabbitmqBridge {
 
     private final AmqpTemplate amqpTemplate;
 

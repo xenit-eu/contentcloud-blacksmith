@@ -4,16 +4,25 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConditionalOnProperty(value = "blacksmith.rabbitmq.enabled")
 public class RabbitmqConfiguration {
-    static final String topicExchangeName = "contentcloud";
 
     @Bean
-    TopicExchange exchange() {
-        return new TopicExchange(topicExchangeName);
+    @ConfigurationProperties(prefix = "blacksmith.rabbitmq")
+    ScribeRabbitmqProperties scribeRabbitmqProperties() {
+        return new ScribeRabbitmqProperties();
+    }
+
+    @Bean
+    TopicExchange exchange(ScribeRabbitmqProperties properties) {
+        return new TopicExchange(properties.getExchange());
     }
 
     @Bean
@@ -24,7 +33,7 @@ public class RabbitmqConfiguration {
     }
 
     @Bean
-    ApplicationEventToRabbitBridge rabbitmqBridge(AmqpTemplate template, Exchange exchange) {
-        return new ApplicationEventToRabbitBridge(template, exchange);
+    ApplicationEventToRabbitmqBridge rabbitmqBridge(AmqpTemplate template, Exchange exchange) {
+        return new ApplicationEventToRabbitmqBridge(template, exchange);
     }
 }
