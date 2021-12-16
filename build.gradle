@@ -56,6 +56,8 @@ bootRun {
 
 bootBuildImage {
 	imageName = "hub.xenit.eu/content-cloud/blacksmith:${project.version}"
+	environment = ["BP_JVM_TYPE" : "JDK"]
+
 	docker {
 		publishRegistry {
 			url = project.findProperty('DOCKER_PUBLISH_REGISTRY_URL')
